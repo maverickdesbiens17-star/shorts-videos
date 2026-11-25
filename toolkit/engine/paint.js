@@ -492,3 +492,178 @@ export const fleur = (g, x, y, s, col = "#ffffff") => {
   g.rect(-34, 22, 68, 14); g.moveTo(-10, 36); g.lineTo(10, 36); g.lineTo(16, 70); g.lineTo(-16, 70); g.closePath();
   g.fillStyle = col; g.fill(); g.restore();
 };
+
+// ---------------- (2026-11-25, star-canoe) Pacific voyaging set ----------------
+/** layered ocean from y0 to the bottom: rolling swell bands, animated with T */
+export const ocean = (g, y0, T = 0, cols = ["#2a7f9e", "#1f6a8a", "#175a78", "#104a66"], x0 = -1500, x1 = 2600, amp = 1) => {
+  cols.forEach((c, i) => {
+    const y = y0 + i * 120 * (1 + i * 0.35), A = (10 + i * 9) * amp, L = 260 + i * 90, sp = 0.6 + i * 0.35;
+    g.beginPath(); g.moveTo(x0, 4000);
+    for (let x = x0; x <= x1; x += 24) g.lineTo(x, y + A * Math.sin((x / L) * 6.283 + T * sp + i * 1.7) + A * 0.4 * Math.sin((x / L) * 15 - T * sp * 1.3));
+    g.lineTo(x1, 4000); g.closePath(); g.fillStyle = c; g.fill(); g.lineWidth = 5; g.strokeStyle = INK; g.stroke();
+    g.strokeStyle = "rgba(255,255,255,0.45)"; g.lineWidth = 6; g.lineCap = "round";
+    for (let k = 0; k < 7; k++) { const xx = x0 + ((rnd(k, i + 3) * (x1 - x0) + T * 40 * sp) % (x1 - x0)); g.beginPath(); g.moveTo(xx, y + 30 + i * 22); g.lineTo(xx + 60 + 40 * rnd(k, i), y + 30 + i * 22); g.stroke(); }
+  });
+};
+/** starfield (twinkling), above yMax only */
+export const stars = (g, T = 0, n = 120, yMax = 1300, seed = 1, W = 1080) => {
+  for (let i = 0; i < n; i++) {
+    const x = rnd(i, seed) * W, y = rnd(i, seed + 1) * yMax, r = 1.5 + rnd(i, seed + 2) * 3.5, tw = 0.55 + 0.45 * Math.sin(T * (1.5 + rnd(i, 9) * 3) + i);
+    g.beginPath(); g.arc(x, y, r * (0.7 + 0.3 * tw), 0, Math.PI * 2); g.fillStyle = `rgba(255,248,220,${0.35 + 0.65 * tw})`; g.fill();
+  }
+};
+/** a bright 4-point star (navigation star) */
+export const bigStar = (g, x, y, r, T = 0, col = "#fff3b0") => {
+  const k = 1 + 0.12 * Math.sin(T * 4);
+  const gr = g.createRadialGradient(x, y, 0, x, y, r * 2.4); gr.addColorStop(0, "rgba(255,240,170,0.55)"); gr.addColorStop(1, "rgba(255,240,170,0)");
+  g.fillStyle = gr; g.beginPath(); g.arc(x, y, r * 2.4, 0, Math.PI * 2); g.fill();
+  g.beginPath(); for (let i = 0; i < 8; i++) { const a = (i * Math.PI) / 4, rr = (i % 2 ? r * 0.28 : r) * k; g.lineTo(x + Math.cos(a - Math.PI / 2) * rr, y + Math.sin(a - Math.PI / 2) * rr); }
+  g.closePath(); g.fillStyle = col; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
+};
+/** double-hulled voyaging canoe, 3/4 side view (two hulls visible, deck between, two crab-claw sails). s=1 → ~760 px long.
+ *  o: { T, rock, sail, hull, crew: [colours], dir, sails: 0..1 (raised) } */
+export const canoe = (g, x, y, s = 1, o = {}) => {
+  const T = o.T ?? 0, dir = o.dir ?? 1, rock = o.rock ?? 1, hullC = o.hull ?? "#7a3b24", sailC = o.sail ?? "#e9cfa0", up = o.sails ?? 1;
+  g.save(); g.translate(x, y + 8 * Math.sin(T * 1.6) * rock); g.rotate(0.03 * Math.sin(T * 1.3) * rock); g.scale(s * dir, s);
+  const hull = (dy, dx, c) => { g.beginPath(); g.moveTo(-380 + dx, -40 + dy); g.quadraticCurveTo(-400 + dx, -120 + dy, -350 + dx, -150 + dy);
+    g.quadraticCurveTo(-320 + dx, -80 + dy, -250 + dx, -50 + dy); g.lineTo(250 + dx, -50 + dy); g.quadraticCurveTo(330 + dx, -80 + dy, 360 + dx, -160 + dy);
+    g.quadraticCurveTo(400 + dx, -110 + dy, 380 + dx, -40 + dy); g.quadraticCurveTo(300 + dx, 30 + dy, 0 + dx, 30 + dy); g.quadraticCurveTo(-300 + dx, 30 + dy, -380 + dx, -40 + dy); g.closePath();
+    g.fillStyle = c; g.fill(); g.lineWidth = 7; g.strokeStyle = INK; g.stroke();
+    g.beginPath(); g.moveTo(-300 + dx, -20 + dy); g.lineTo(300 + dx, -20 + dy); g.lineWidth = 6; g.strokeStyle = "#e8c070"; g.stroke(); };
+  hull(-70, 60, shadeHex(hullC, 0.78)); // far hull
+  // deck + cross beams
+  g.beginPath(); g.moveTo(-260, -60); g.lineTo(300, -125); g.lineTo(300, -105); g.lineTo(-260, -40); g.closePath(); g.fillStyle = "#c8a070"; g.fill(); g.lineWidth = 5; g.strokeStyle = INK; g.stroke();
+  for (let i = 0; i < 5; i++) { const bx = -220 + i * 110; g.beginPath(); g.moveTo(bx, -50); g.lineTo(bx + 60, -128); g.lineWidth = 9; g.strokeStyle = "#8a5a34"; g.stroke(); }
+  // little deck shelter
+  g.beginPath(); g.moveTo(-40, -70); g.lineTo(10, -140); g.lineTo(100, -150); g.lineTo(60, -80); g.closePath(); g.fillStyle = "#d9b77a"; g.fill(); g.lineWidth = 5; g.strokeStyle = INK; g.stroke();
+  // crew heads
+  (o.crew ?? []).forEach((c, i) => { const cx = -200 + i * 70 + (i % 2) * 10, cy = -95 - i * 6 + 3 * Math.sin(T * 3 + i); g.beginPath(); g.ellipse(cx, cy, 20, 23, 0, 0, Math.PI * 2); g.fillStyle = c; g.fill(); g.lineWidth = 4; g.strokeStyle = INK; g.stroke();
+    g.beginPath(); g.ellipse(cx, cy - 12, 20, 11, 0, Math.PI, 0); g.fillStyle = "#1c1a22"; g.fill(); });
+  // crab-claw sails (two masts)
+  for (const [mx, h] of [[-120, 420], [150, 470]]) {
+    const H = h * up, sw = 1 + 0.04 * Math.sin(T * 2 + mx);
+    g.beginPath(); g.moveTo(mx, -80); g.lineTo(mx + 20, -80 - H * 0.9); g.lineWidth = 10; g.strokeStyle = "#5a3a22"; g.stroke();
+    g.beginPath(); g.moveTo(mx + 6, -110); g.quadraticCurveTo(mx - 120 * sw, -80 - H * 0.6, mx - 150 * sw, -80 - H); g.quadraticCurveTo(mx - 40, -80 - H * 0.78, mx + 60 * sw, -80 - H * 1.02);
+    g.quadraticCurveTo(mx + 70 * sw, -80 - H * 0.5, mx + 6, -110); g.closePath(); g.fillStyle = sailC; g.fill(); g.lineWidth = 7; g.strokeStyle = INK; g.stroke();
+    g.beginPath(); g.moveTo(mx - 20, -80 - H * 0.45); g.lineTo(mx + 30, -80 - H * 0.5); g.moveTo(mx - 60, -80 - H * 0.75); g.lineTo(mx + 40, -80 - H * 0.8); g.lineWidth = 3; g.stroke();
+  }
+  hull(0, 0, hullC); // near hull
+  g.restore();
+};
+/** balsa-log raft with a square sail and a sun-face, cabin; s=1 → ~640 px */
+export const raft = (g, x, y, s = 1, T = 0, faceCol = "#c8323a") => {
+  g.save(); g.translate(x, y + 7 * Math.sin(T * 1.7)); g.rotate(0.035 * Math.sin(T * 1.2)); g.scale(s, s);
+  g.beginPath(); g.moveTo(-40, -40); g.lineTo(-30, -560); g.moveTo(40, -40); g.lineTo(30, -560); g.lineWidth = 12; g.strokeStyle = "#7a5a34"; g.stroke();
+  g.beginPath(); g.rect(-190, -540, 380, 380); g.fillStyle = "#efe2c0"; g.fill(); g.lineWidth = 8; g.strokeStyle = INK; g.stroke();
+  g.beginPath(); g.arc(0, -350, 120, 0, Math.PI * 2); g.fillStyle = faceCol; g.fill(); g.lineWidth = 6; g.stroke();
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; g.beginPath(); g.moveTo(Math.cos(a) * 125, -350 + Math.sin(a) * 125); g.lineTo(Math.cos(a) * 160, -350 + Math.sin(a) * 160); g.lineWidth = 9; g.strokeStyle = faceCol; g.stroke(); }
+  g.fillStyle = "#efe2c0"; for (const ex of [-45, 45]) { g.beginPath(); g.ellipse(ex, -375, 22, 16, 0, 0, Math.PI * 2); g.fill(); }
+  g.beginPath(); g.arc(0, -320, 50, 0.2, Math.PI - 0.2); g.lineWidth = 10; g.strokeStyle = "#efe2c0"; g.stroke();
+  g.beginPath(); g.moveTo(130, -40); g.lineTo(150, -150); g.lineTo(300, -160); g.lineTo(300, -40); g.closePath(); g.fillStyle = "#d9b77a"; g.fill(); g.lineWidth = 6; g.strokeStyle = INK; g.stroke();
+  for (let i = 0; i < 9; i++) { g.beginPath(); g.roundRect(-330 + i * 75, -50, 80, 60, 26); g.fillStyle = i % 2 ? "#c9a66b" : "#d8b87e"; g.fill(); g.lineWidth = 5; g.strokeStyle = INK; g.stroke(); }
+  g.restore();
+};
+/** small tropical island (sand, green hill, palms) */
+export const island = (g, x, y, w, T = 0, palms = 2) => {
+  g.beginPath(); g.ellipse(x, y, w / 2, w * 0.12, 0, Math.PI, 0); g.fillStyle = "#f2d9a0"; g.fill(); g.lineWidth = Math.max(3, w / 120); g.strokeStyle = INK; g.stroke();
+  g.beginPath(); g.ellipse(x - w * 0.05, y - w * 0.05, w * 0.3, w * 0.12, 0, Math.PI, 0); g.fillStyle = "#5fae5a"; g.fill(); g.stroke();
+  for (let i = 0; i < palms; i++) palm(g, x - w * 0.18 + i * w * 0.3, y - w * 0.06, w * (0.42 - i * 0.06), T + i * 2);
+};
+/** white tern in flight (wings flap) */
+export const tern = (g, x, y, s = 1, T = 0, dir = 1) => {
+  const f = Math.sin(T * 9);
+  g.save(); g.translate(x, y); g.scale(s * dir, s);
+  for (const side of [-1, 1]) { g.beginPath(); g.moveTo(-10, 0); g.quadraticCurveTo(-30, -60 * f * side - 10, -90, -70 * f * side - (side > 0 ? 20 : -10)); g.quadraticCurveTo(-40, -10, 20, 0); g.closePath(); g.fillStyle = side > 0 ? "#ffffff" : "#e6eef2"; g.fill(); g.lineWidth = 4; g.strokeStyle = INK; g.stroke(); }
+  g.beginPath(); g.ellipse(0, 0, 46, 15, 0, 0, Math.PI * 2); g.fillStyle = "#ffffff"; g.fill(); g.lineWidth = 4; g.strokeStyle = INK; g.stroke();
+  g.beginPath(); g.moveTo(-44, 0); g.lineTo(-74, -12); g.lineTo(-66, 0); g.lineTo(-74, 12); g.closePath(); g.fill(); g.stroke();
+  g.beginPath(); g.moveTo(44, -4); g.lineTo(70, 2); g.lineTo(44, 6); g.fillStyle = "#1c1a22"; g.fill();
+  g.beginPath(); g.arc(32, -4, 4, 0, Math.PI * 2); g.fill();
+  g.restore();
+};
+const blob4 = (g, x, y, rx, ry, c, lw = 5) => { g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); g.fillStyle = c; g.fill(); g.lineWidth = lw; g.strokeStyle = INK; g.stroke(); };
+const eyes2 = (g, x, y, d, r = 6) => { g.fillStyle = INK; for (const k of [-1, 1]) { g.beginPath(); g.arc(x + k * d, y, r, 0, Math.PI * 2); g.fill(); } };
+/** cartoon pig, side-ish view facing right; s=1 → ~260 px */
+export const pig = (g, x, y, s = 1, T = 0, happy = 1) => {
+  g.save(); g.translate(x, y - Math.abs(Math.sin(T * 5)) * 8); g.scale(s, s);
+  for (const lx of [-70, -30, 40, 75]) { g.beginPath(); g.roundRect(lx - 12, -40, 24, 50, 8); g.fillStyle = "#e8909a"; g.fill(); g.lineWidth = 5; g.strokeStyle = INK; g.stroke(); }
+  blob4(g, 0, -90, 120, 75, "#f7b2b8");
+  g.beginPath(); g.moveTo(-118, -100); g.bezierCurveTo(-150, -130, -150, -70, -128, -80); g.lineWidth = 5; g.stroke();
+  blob4(g, 95, -120, 62, 55, "#f7b2b8");
+  g.beginPath(); g.moveTo(70, -165); g.lineTo(60, -205); g.lineTo(95, -172); g.closePath(); g.fillStyle = "#e8909a"; g.fill(); g.stroke();
+  blob4(g, 150, -112, 26, 22, "#ee98a2", 4); eyes2(g, 145, -112, 8, 4);
+  eyes2(g, 100, -140, 16, 6);
+  g.beginPath(); g.arc(108, -100, 16, 0.2, Math.PI - 0.2); g.lineWidth = 4; g.stroke();
+  g.restore();
+};
+/** cartoon dog, sitting, facing right; s=1 → ~240 px */
+export const dog = (g, x, y, s = 1, T = 0, col = "#c98a4a") => {
+  g.save(); g.translate(x, y); g.scale(s, s);
+  const wag = Math.sin(T * 14) * 0.5;
+  g.save(); g.translate(-60, -50); g.rotate(-0.8 + wag); g.beginPath(); g.roundRect(-10, -80, 20, 80, 10); g.fillStyle = col; g.fill(); g.lineWidth = 5; g.strokeStyle = INK; g.stroke(); g.restore();
+  blob4(g, 0, -70, 75, 70, col);
+  for (const lx of [-20, 30]) { g.beginPath(); g.roundRect(lx - 14, -40, 28, 44, 10); g.fillStyle = col; g.fill(); g.lineWidth = 5; g.stroke(); }
+  blob4(g, 30, -170, 66, 58, col);
+  for (const ex of [-25, 70]) { g.save(); g.translate(ex, -210); g.rotate(ex < 0 ? -0.3 : 0.3); blob4(g, 0, 20, 18, 40, shadeHex(col, 0.7), 4); g.restore(); }
+  blob4(g, 72, -150, 34, 24, "#f2dcc0", 4); g.beginPath(); g.arc(96, -158, 9, 0, Math.PI * 2); g.fillStyle = INK; g.fill();
+  eyes2(g, 38, -182, 16, 6);
+  g.beginPath(); g.moveTo(70, -138); g.quadraticCurveTo(80, -112 - 6 * Math.abs(Math.sin(T * 6)), 92, -138); g.fillStyle = "#e86e78"; g.fill(); g.lineWidth = 3; g.stroke();
+  g.restore();
+};
+/** cartoon chicken facing right; s=1 → ~180 px; peck animates */
+export const chicken = (g, x, y, s = 1, T = 0, col = "#f6f3ea") => {
+  const pk = Math.max(0, Math.sin(T * 6)) * 0.35;
+  g.save(); g.translate(x, y); g.scale(s, s);
+  g.strokeStyle = "#e0a020"; g.lineWidth = 7; for (const lx of [-15, 15]) { g.beginPath(); g.moveTo(lx, -40); g.lineTo(lx, 0); g.lineTo(lx + 15, 0); g.stroke(); }
+  blob4(g, 0, -80, 62, 48, col);
+  g.beginPath(); g.moveTo(-55, -100); g.lineTo(-95, -140); g.lineTo(-80, -90); g.closePath(); g.fillStyle = col; g.fill(); g.lineWidth = 5; g.strokeStyle = INK; g.stroke();
+  g.save(); g.translate(40, -110); g.rotate(pk);
+  blob4(g, 10, -30, 32, 32, col);
+  g.beginPath(); g.moveTo(0, -60); g.arc(4, -64, 10, Math.PI, 0); g.arc(20, -62, 9, Math.PI, 0); g.lineTo(26, -54); g.closePath(); g.fillStyle = "#e0303a"; g.fill(); g.lineWidth = 3; g.stroke();
+  g.beginPath(); g.moveTo(38, -32); g.lineTo(60, -26); g.lineTo(38, -20); g.closePath(); g.fillStyle = "#f2b02a"; g.fill(); g.stroke();
+  g.beginPath(); g.arc(20, -36, 5, 0, Math.PI * 2); g.fillStyle = INK; g.fill();
+  g.restore(); g.restore();
+};
+/** magnetic compass (for "no compass") */
+export const compass = (g, x, y, r, T = 0) => {
+  blob4(g, x, y, r, r, "#c9a24a", r * 0.06); blob4(g, x, y, r * 0.82, r * 0.82, "#fffaf0", r * 0.03);
+  g.fillStyle = INK; g.font = `900 ${r * 0.22}px Montserrat`; g.textAlign = "center"; g.textBaseline = "middle";
+  [["N", 0], ["E", 1], ["S", 2], ["W", 3]].forEach(([l, i]) => { const a = (i * Math.PI) / 2 - Math.PI / 2; g.fillText(l, x + Math.cos(a) * r * 0.62, y + Math.sin(a) * r * 0.62); });
+  g.save(); g.translate(x, y); g.rotate(0.3 * Math.sin(T * 2.3)); g.beginPath(); g.moveTo(0, -r * 0.5); g.lineTo(r * 0.1, 0); g.lineTo(-r * 0.1, 0); g.closePath(); g.fillStyle = "#e0303a"; g.fill();
+  g.beginPath(); g.moveTo(0, r * 0.5); g.lineTo(r * 0.1, 0); g.lineTo(-r * 0.1, 0); g.closePath(); g.fillStyle = "#3a4a6a"; g.fill(); g.restore();
+  blob4(g, x, y, r * 0.06, r * 0.06, "#c9a24a", 3);
+};
+/** rolled paper map with dotted route and X */
+export const paperMap = (g, x, y, w, rot = 0) => {
+  const h = w * 0.7; g.save(); g.translate(x, y); g.rotate(rot);
+  g.beginPath(); g.rect(-w / 2, -h / 2, w, h); g.fillStyle = "#f2e2b8"; g.fill(); g.lineWidth = w * 0.015; g.strokeStyle = INK; g.stroke();
+  for (const sx of [-1, 1]) { g.beginPath(); g.ellipse(sx * w / 2, 0, w * 0.04, h / 2 + 8, 0, 0, Math.PI * 2); g.fillStyle = "#e2cc98"; g.fill(); g.stroke(); }
+  g.beginPath(); g.ellipse(-w * 0.2, -h * 0.1, w * 0.14, h * 0.2, 0.4, 0, Math.PI * 2); g.ellipse(w * 0.22, h * 0.12, w * 0.1, h * 0.14, -0.3, 0, Math.PI * 2); g.fillStyle = "#9fd08a"; g.fill(); g.lineWidth = 3; g.stroke();
+  g.setLineDash([w * 0.03, w * 0.02]); g.beginPath(); g.moveTo(-w * 0.2, -h * 0.05); g.quadraticCurveTo(0, h * 0.3, w * 0.2, h * 0.1); g.lineWidth = w * 0.012; g.strokeStyle = "#c8323a"; g.stroke(); g.setLineDash([]);
+  g.font = `900 ${w * 0.12}px Montserrat`; g.fillStyle = "#c8323a"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("X", w * 0.2, h * 0.1);
+  g.restore();
+};
+/** sextant-like brass instrument */
+export const sextant = (g, x, y, s = 1, rot = 0) => {
+  g.save(); g.translate(x, y); g.rotate(rot); g.scale(s, s);
+  g.beginPath(); g.moveTo(0, -150); g.lineTo(-110, 60); g.arc(0, -150, 236, Math.PI * 0.62, Math.PI * 0.38, true); g.closePath(); g.fillStyle = "#d8a84a"; g.fill(); g.lineWidth = 8; g.strokeStyle = INK; g.stroke();
+  g.beginPath(); g.moveTo(-40, -60); g.lineTo(40, -60); g.lineTo(0, -150); g.closePath(); g.fillStyle = "#f2d79a"; g.fill(); g.lineWidth = 5; g.stroke();
+  for (let i = 0; i < 9; i++) { const a = Math.PI * 0.4 + i * Math.PI * 0.025; g.beginPath(); g.moveTo(Math.cos(a) * 210, -150 + Math.sin(a) * 210); g.lineTo(Math.cos(a) * 236, -150 + Math.sin(a) * 236); g.lineWidth = 3; g.stroke(); }
+  g.beginPath(); g.roundRect(30, -120, 120, 34, 14); g.fillStyle = "#3a3440"; g.fill(); g.stroke();
+  g.restore();
+};
+/** star compass: ring of 32 houses with marks, rotating highlight */
+export const starCompass = (g, x, y, r, T = 0, k = 1) => {
+  g.save(); g.translate(x, y); g.globalAlpha = clamp(k, 0, 1);
+  g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.lineWidth = 6; g.strokeStyle = "rgba(255,230,160,0.8)"; g.stroke();
+  for (let i = 0; i < 32; i++) { const a = (i / 32) * Math.PI * 2, on = Math.floor(T * 4) % 32 === i; g.beginPath(); g.arc(Math.cos(a) * r, Math.sin(a) * r, on ? 16 : 9, 0, Math.PI * 2); g.fillStyle = on ? "#fff3b0" : "#c8b07a"; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
+    if (i % 4 === 0) { g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * r * 0.92, Math.sin(a) * r * 0.92); g.lineWidth = 2; g.strokeStyle = "rgba(255,230,160,0.35)"; g.stroke(); } }
+  g.restore();
+};
+/** smartphone; txt on screen */
+export const phone = (g, x, y, h, rot = 0, txt = "", scr = "#4fb3f0") => {
+  const w = h * 0.5; g.save(); g.translate(x, y); g.rotate(rot);
+  g.beginPath(); g.roundRect(-w / 2, -h / 2, w, h, w * 0.14); g.fillStyle = "#1c1a22"; g.fill(); g.lineWidth = h * 0.02; g.strokeStyle = INK; g.stroke();
+  g.beginPath(); g.roundRect(-w / 2 + w * 0.08, -h / 2 + w * 0.12, w * 0.84, h - w * 0.24, w * 0.06); g.fillStyle = scr; g.fill();
+  if (txt) { g.fillStyle = "#fff"; g.font = `900 ${w * 0.15}px Montserrat`; g.textAlign = "center"; g.textBaseline = "middle"; txt.split("\n").forEach((l, i, a) => g.fillText(l, 0, (i - (a.length - 1) / 2) * w * 0.2)); }
+  g.restore();
+};

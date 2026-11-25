@@ -40,8 +40,19 @@ outlines) on painted 2D backgrounds, a free TTS voice-over, synthesized music/SF
   "to"; `placard()` campaign-sign label; VHS "◀◀ REWIND" transition (scene replayed backwards + scanlines + tape-stop in audio.py);
   scoreboard race bars; split-screen comparison; `starts.json` (shot starts) feeds the whoosh cues in audio.py.
 - Rising-from-behind trick: draw the character first, clipped above the occluder's top edge, then the occluder.
+## Engine additions (star-canoe, 2026-11-24 evening)
+- toon.js: `o.beard` (full beard, any colour), bare chest via `o.bare` (+ `o.tattoo` chevron bands, `o.wrap` waist cloth),
+  `o.lei` (flower garland: one colour or an array).
+- paint.js: `ocean` (layered animated swells; `amp` for storms), `stars`, `bigStar` (glowing navigation star), `canoe`
+  (double-hulled voyaging canoe, crab-claw sails, `crew` heads, `rock`, `sails`), `raft` (balsa raft with sun-face sail), `island`,
+  `tern`, `pig`, `dog`, `chicken`, `compass`, `paperMap`, `sextant`, `starCompass`, `phone`.
+- tools/starts.mjs: writes `starts.json` (shot starts) straight from main.js — run it from work/<slug> before audio.py.
+- main.js ideas: `tapa()` bark-cloth banner label, `bigX`/`check` marks, `pin()` map pins, `pacMap()` + `route()` animated map routes,
+  `calPage()` flip calendar (old page shows the previous number), object handed mid-air between two characters (glowing star),
+  crew "inside" a hull by clipping at the gunwale. audio.py now computes word times exactly like main.js (`T_`, `SEG`) — no hand-typed cue times.
+- Captions moved to y = 0.70·H (was 0.60) so they no longer cover faces; keep faces/heads above ~1250 px.
 ## Still to improve
-Side-view walking with held props, two characters actually exchanging an object mid-air (animate held object between the two hands),
+Side-view walking with held props, a real side-view sailing pose for characters on deck,
 real free music/SFX files if the owner uploads them.
 
 ## Layout

@@ -312,7 +312,7 @@ const mouth = (p     , kind        , mx        , my        , u        , k = 1) =
 /** face v2 (front / 3-4). u = 1 % of the head path width W. Eyes 26u apart on the centre line, brows 20u up, mouth 20u
  *  down, everything slid toward the facing side. No blush, no catchlights. */
 const faceFront = (p     , cx        , cy        , W        , expr      , facing        , look        , lid        , brim         ,
-  skin        , moustache         , stout = false) => {
+  skin        , moustache         , stout = false, beard = null) => {
   const u = W / 100, F = FACE[expr], fx = cx + 7 * u * facing;
   const ex = (F.eye[0] === "shock" ? 12 : 13) * u, ey = cy;
   for (const side of [-1, 1]) {
@@ -324,6 +324,13 @@ const faceFront = (p     , cx        , cy        , W        , expr      , facing
     else taper(p, [x - side * 8.5 * u, by + dI * u], [x + side * 8.5 * u, by + dO * u], 5 * u, 2.5 * u);
   }
   const mx = cx + 8 * u * facing, my = cy + 20 * u;
+  if (beard) { // (2026-11-25) full beard: lower-face cup with a notch under the nose; the mouth is drawn on top
+    const bp = [[fx + 40 * u, cy + 4 * u]];
+    for (let a = 10; a <= 170; a += 10) { const r = (a * Math.PI) / 180; bp.push([fx + 40 * u * Math.cos(r), cy + 6 * u + 38 * u * Math.sin(r) * (1 + 0.08 * Math.sin(r * 9))]); }
+    bp.push([fx - 40 * u, cy + 4 * u], [fx - 16 * u, cy + 13 * u], [fx, cy + 11 * u], [fx + 16 * u, cy + 13 * u]);
+    p.poly(bp, beard, 2.6 * u);
+    p.ell(mx, my + 1 * u, 13 * u, 8 * u, mix(beard, "#ffffff", 0.25), 0);
+  }
   mouth(p, F.mouth, mx, my, u);
   if (moustache) for (const s of [-1, 1])
     taper(p, [mx + s * 1.5 * u, cy + 12.5 * u], [mx + s * (stout ? 19 : 15) * u, cy + (stout ? 10.5 : 15) * u], stout ? 5.5 * u : 4.5 * u, 1.6 * u, moustache);
@@ -615,7 +622,12 @@ export const bodyFront = (p     , o        , opts           ) => {
         p.poly([[x - 16 * u, y0], [x + 16 * u, y0], [x, y0 + 0.5 * HH]], o.shirt ?? "#f6f3ea", 1.6 * u);
         p.poly([[x - 4 * u, y0 + 0.04 * HH], [x + 4 * u, y0 + 0.04 * HH], [x + 6.5 * u, y0 + 0.44 * HH], [x, y0 + 0.54 * HH], [x - 6.5 * u, y0 + 0.44 * HH]], o.tie, 1.6 * u);
       }
-      if (!o.tie) for (let i = 0; i < 4; i++) {
+      if (o.tattoo) for (let i = 0; i < 4; i++) { // (2026-11-25) bare chest with chevron tattoo bands (Micronesian-style, generic)
+        const y = chin + 0.14 * HH + i * 0.17 * HH;
+        p.stroke([[tcx - 0.55 * T.a, y], [tcx, y + 0.07 * HH], [tcx + 0.55 * T.a, y]], 2.4 * u, o.tattoo);
+      }
+      if (o.wrap) p.band([[tcx - 1.3 * T.a, torsoBot - 0.1 * HH], [tcx + 1.3 * T.a, torsoBot - 0.1 * HH]], o.wrap, 0.24 * HH, 1.8 * u);
+      if (!o.tie && !o.bare) for (let i = 0; i < 4; i++) {
         const y = chin + 0.12 * HH + i * 0.2 * HH;
         if (o.sash && Math.abs(y - (torsoBot - 0.32 * HH)) < 0.08 * HH) continue;
         p.dot(tcx + 2 * u * facing, y, 2.2 * u + 0.8 * u, INK); p.dot(tcx + 2 * u * facing, y, 2.2 * u, o.buttons ?? shade(o.jacket, 0.7));
@@ -623,6 +635,10 @@ export const bodyFront = (p     , o        , opts           ) => {
     });
     if (o.sash) { const s = facing || 1; p.poly([[tcx + s * 0.55 * T.a, torsoBot - 0.3 * HH], [tcx + s * 0.75 * T.a, torsoBot + 0.05 * HH], [tcx + s * 0.45 * T.a, torsoBot + 0.02 * HH]], o.sash, 1.6 * u); }
     p.inkRing(tp, ow, thick);
+  }
+  if (o.lei) for (let i = -6; i <= 6; i++) { // (2026-11-25) flower lei around the neck
+    const x = 300 + i * 0.105 * W, y = chin + 0.06 * HH + 0.0035 * HH * i * i;
+    p.ell(x, y, 5.2 * u, 5.2 * u, Array.isArray(o.lei) ? o.lei[(i + 6) % o.lei.length] : o.lei, 1.6 * u);
   }
   // in front of the body: hands holding props
   for (const a of arms) if (a.front) {
@@ -663,7 +679,7 @@ export const bodyFront = (p     , o        , opts           ) => {
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, 300, hc, light, seed, facing, false);
   const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "guapi";
-  faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout");
+  faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout", o.beard);
   p.rot = null;
 };
 
