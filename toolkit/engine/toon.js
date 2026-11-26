@@ -252,6 +252,7 @@ const FACE                                                                      
   smile: { eye: ["dot", "dot"], brow: [0, -1], mouth: "smirk" },
   smile_closed: { eye: ["happy", "happy"], brow: [0, -1], mouth: "smile" },
   lick: { eye: ["dot", "dot"], brow: [0, -1], mouth: "lick" },
+  smirk: { eye: ["slit", "slit"], brow: [4, -5], mouth: "smirk" }, // (2026-11-26) smug, half-closed eyes
 };
 const halfLid = (k      )       => (k === "dot" || k === "small" ? "lid" : k === "lid" ? "slit" : k === "shock" ? "shockHalf" : k);
 const eyeKind = (k      , lid        )       =>
@@ -444,6 +445,15 @@ const hatOn = (p     , o        , hp      , H      , cx        , hc        , lig
     const body = R([...sag(yb, wb).reverse(), [cx - wt, yb - ht], [cx - 0.08 * W, yb - ht + 6 * u], [cx, yb - ht + 12 * u], [cx + 0.08 * W, yb - ht + 6 * u], [cx + wt, yb - ht]]);
     p.shadedFill(body, col, mul(col, SH_FELT), light, wt, 0.4);
     p.clip(body, () => p.band(R([[cx - wb - 4 * u, yb - 0.08 * HH], [cx + wb + 4 * u, yb - 0.08 * HH]]), o.band ?? "#2a2026", 0.09 * HH, 0.8 * u));
+    p.poly(body, null, ow);
+  } else if (o.hat === "safari") { // (2026-11-26) 1930s canvas sun hat: domed crown, wide round brim, leather band
+    const yb = crown + 0.22 * HH, ht = 0.46 * HH, wb = 0.4 * W, col = o.cap ?? "#d8c08a";
+    const [bx, by] = R([[cx, yb + 1 * u]])[0];
+    p.ell(bx, by, 0.7 * W, 0.08 * HH, shade(col, 0.85), ow, 0, 360, (a * 180) / Math.PI);
+    const dome = []; for (let i = 0; i <= 16; i++) { const t = Math.PI + (i / 16) * Math.PI; dome.push([cx + Math.cos(t) * wb, yb + Math.sin(t) * ht]); }
+    const body = R([...sag(yb, wb).reverse(), ...dome.slice(1)]);
+    p.shadedFill(body, col, mul(col, SH_FELT), light, wb, 0.4);
+    p.clip(body, () => p.band(R([[cx - wb - 4 * u, yb - 0.07 * HH], [cx + wb + 4 * u, yb - 0.07 * HH]]), o.band ?? "#5a3a24", 0.08 * HH, 0.8 * u));
     p.poly(body, null, ow);
   } else if (o.hat === "bonnet") {
     const [bx, by] = R([[cx + (side ? 6 * u : 0), crown + 0.16 * HH]])[0];

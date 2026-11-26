@@ -667,3 +667,196 @@ export const phone = (g, x, y, h, rot = 0, txt = "", scr = "#4fb3f0") => {
   if (txt) { g.fillStyle = "#fff"; g.font = `900 ${w * 0.15}px Montserrat`; g.textAlign = "center"; g.textBaseline = "middle"; txt.split("\n").forEach((l, i, a) => g.fillText(l, 0, (i - (a.length - 1) / 2) * w * 0.2)); }
   g.restore();
 };
+
+// ======================= (2026-11-26, bicycle-africa) =======================
+/** wheel with spokes (spin = angle) */
+const wheel = (g, x, y, r, spin, rim = "#2a2a30") => {
+  g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.lineWidth = r * 0.2; g.strokeStyle = INK; g.stroke(); g.lineWidth = r * 0.12; g.strokeStyle = rim; g.stroke();
+  g.lineWidth = Math.max(1.5, r * 0.03); g.strokeStyle = "#8d949c";
+  for (let i = 0; i < 8; i++) { const a = spin + (i * Math.PI) / 4; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * r * 0.9, y + Math.sin(a) * r * 0.9); g.stroke(); }
+  g.beginPath(); g.arc(x, y, r * 0.1, 0, Math.PI * 2); g.fillStyle = INK; g.fill();
+};
+/** 1930s touring bicycle in side view facing +x, ground at y; optional side-profile rider (r = {skin, shirt, pants, hat, hatCol}).
+ *  T drives wheel spin + pedalling; bags = loaded panniers + bedroll; push = rider walks beside it (pass rider null and draw your own) */
+export const bikeSide = (g, x, y, s, T = 0, r = null, o = {}) => {
+  g.save(); g.translate(x, y); g.scale(s * (o.dir || 1), s);
+  const R = 110, spin = o.still ? 0 : T * 7, wy = -R, bx = -180, fx = 190;
+  const frame = o.frame ?? "#2f4a6a";
+  wheel(g, bx, wy, R, spin); wheel(g, fx, wy, R, spin);
+  const BB = [-10, -95], ST = [-60, -300], HT = [140, -290], HB = [130, -360];
+  const tube = (a, b, w = 16) => { g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.lineWidth = w + 8; g.strokeStyle = INK; g.stroke(); g.lineWidth = w; g.strokeStyle = frame; g.stroke(); };
+  tube([bx, wy], BB); tube([bx, wy], ST); tube(BB, ST); tube(ST, HT); tube(BB, HT); tube(HT, [fx, wy], 14); tube(HT, HB, 12);
+  // handlebar + saddle
+  g.beginPath(); g.moveTo(HB[0] - 10, HB[1]); g.quadraticCurveTo(HB[0] + 40, HB[1] - 20, HB[0] + 60, HB[1] + 20); g.lineWidth = 18; g.strokeStyle = INK; g.stroke(); g.lineWidth = 10; g.strokeStyle = "#8d949c"; g.stroke();
+  g.beginPath(); g.ellipse(ST[0] - 10, ST[1] - 14, 52, 16, 0, 0, Math.PI * 2); g.fillStyle = "#4a3020"; g.fill(); g.lineWidth = 6; g.strokeStyle = INK; g.stroke();
+  if (o.bags !== false) { // rear rack bags + bedroll
+    g.beginPath(); g.roundRect(bx - 110, wy - 150, 150, 110, 18); g.fillStyle = "#8a6a3a"; g.fill(); g.lineWidth = 7; g.strokeStyle = INK; g.stroke();
+    g.beginPath(); g.moveTo(bx - 100, wy - 110); g.lineTo(bx + 30, wy - 110); g.lineWidth = 5; g.stroke();
+    g.beginPath(); g.ellipse(bx - 35, wy - 175, 85, 30, 0, 0, Math.PI * 2); g.fillStyle = "#5a7a4a"; g.fill(); g.lineWidth = 7; g.stroke();
+    g.beginPath(); g.roundRect(fx - 70, wy - 170, 80, 70, 12); g.fillStyle = "#8a6a3a"; g.fill(); g.lineWidth = 6; g.stroke();
+  }
+  // crank
+  const ca = o.still ? 0.6 : T * 7, cr = 42;
+  const P1 = [BB[0] + Math.cos(ca) * cr, BB[1] + Math.sin(ca) * cr], P2 = [BB[0] - Math.cos(ca) * cr, BB[1] - Math.sin(ca) * cr];
+  g.beginPath(); g.arc(BB[0], BB[1], 26, 0, Math.PI * 2); g.fillStyle = "#c9ccd2"; g.fill(); g.lineWidth = 6; g.strokeStyle = INK; g.stroke();
+  if (r) {
+    const hip = [ST[0] - 4, ST[1] - 30], sk = r.skin ?? "#f3d2a8", lean = o.lean ?? 0.25;
+    const knee = (p) => { const dx = p[0] - hip[0], dy = p[1] - hip[1], d = Math.hypot(dx, dy), L = 135, h = Math.sqrt(Math.max(0, L * L - (d / 2) * (d / 2)));
+      return [hip[0] + dx / 2 + (dy / d) * h * -1 * -1, hip[1] + dy / 2 - (dx / d) * h * -1]; };
+    const leg = (p, c) => { const k = knee(p); g.beginPath(); g.moveTo(hip[0], hip[1]); g.lineTo(k[0], k[1]); g.lineTo(p[0], p[1]); g.lineWidth = 40; g.strokeStyle = INK; g.stroke(); g.lineWidth = 30; g.strokeStyle = c; g.stroke();
+      g.beginPath(); g.ellipse(p[0] + 14, p[1] + 6, 30, 14, 0, 0, Math.PI * 2); g.fillStyle = r.boots ?? "#3a2a1e"; g.fill(); g.lineWidth = 5; g.strokeStyle = INK; g.stroke(); };
+    leg(P2, shadeHex(r.pants ?? "#7a6a4a", 0.75));
+    // torso leaning forward
+    const sh = [hip[0] + 150 * Math.sin(lean) + 20, hip[1] - 220 * Math.cos(lean)];
+    g.beginPath(); g.moveTo(hip[0] - 40, hip[1] + 10); g.quadraticCurveTo(hip[0] - 50, sh[1] + 30, sh[0] - 20, sh[1] - 10); g.lineTo(sh[0] + 45, sh[1] + 15); g.quadraticCurveTo(hip[0] + 70, hip[1] - 60, hip[0] + 40, hip[1] + 12); g.closePath();
+    g.fillStyle = r.shirt ?? "#d8c08a"; g.fill(); g.lineWidth = 7; g.strokeStyle = INK; g.stroke();
+    if (r.pack) { g.beginPath(); g.roundRect(hip[0] - 95, sh[1] + 20, 70, 130, 18); g.fillStyle = r.pack; g.fill(); g.lineWidth = 6; g.stroke(); }
+    // arm to the handlebar
+    g.beginPath(); g.moveTo(sh[0] + 10, sh[1] + 20); g.quadraticCurveTo(sh[0] + 70, sh[1] + 70, HB[0] + 30, HB[1] - 8); g.lineWidth = 34; g.strokeStyle = INK; g.stroke(); g.lineWidth = 24; g.strokeStyle = shadeHex(r.shirt ?? "#d8c08a", 0.85); g.stroke();
+    g.beginPath(); g.arc(HB[0] + 32, HB[1] - 8, 16, 0, Math.PI * 2); g.fillStyle = sk; g.fill(); g.lineWidth = 5; g.stroke();
+    // head (profile bean) + nose + eye + hat
+    const hx = sh[0] + 40, hy = sh[1] - 90 + (o.still ? 0 : 4 * Math.sin(T * 14));
+    g.beginPath(); g.ellipse(hx, hy, 62, 74, 0.1, 0, Math.PI * 2); g.fillStyle = sk; g.fill(); g.lineWidth = 7; g.strokeStyle = INK; g.stroke();
+    g.beginPath(); g.ellipse(hx + 62, hy + 8, 16, 13, 0, 0, Math.PI * 2); g.fillStyle = sk; g.fill(); g.lineWidth = 5; g.stroke();
+    g.beginPath(); g.arc(hx + 28, hy - 6, 8, 0, Math.PI * 2); g.fillStyle = INK; g.fill();
+    g.beginPath(); g.arc(hx + 30, hy + 30, 14, 0.2, 1.6); g.lineWidth = 5; g.stroke();
+    if (r.moustache) { g.beginPath(); g.ellipse(hx + 48, hy + 26, 20, 8, -0.2, 0, Math.PI * 2); g.fillStyle = r.moustache; g.fill(); g.lineWidth = 3; g.stroke(); }
+    const hc = r.hatCol ?? "#c9a86a";
+    if (r.hat === "safari") { g.beginPath(); g.ellipse(hx + 4, hy - 46, 105, 22, 0.05, 0, Math.PI * 2); g.fillStyle = hc; g.fill(); g.lineWidth = 6; g.stroke();
+      g.beginPath(); g.ellipse(hx, hy - 62, 62, 46, 0, Math.PI, 0); g.closePath(); g.fillStyle = hc; g.fill(); g.lineWidth = 6; g.stroke(); g.fillStyle = r.band ?? "#5a3a24"; g.fillRect(hx - 60, hy - 66, 120, 14); }
+    else { g.beginPath(); g.ellipse(hx - 8, hy - 40, 62, 44, 0, Math.PI * 1.05, Math.PI * 2.1); g.fillStyle = r.hair ?? "#3a2a1e"; g.fill(); g.lineWidth = 6; g.stroke(); }
+    leg(P1, r.pants ?? "#7a6a4a");
+  }
+  // pedals
+  for (const p of [P1, P2]) { g.beginPath(); g.roundRect(p[0] - 22, p[1] - 6, 44, 12, 4); g.fillStyle = "#555"; g.fill(); g.lineWidth = 4; g.strokeStyle = INK; g.stroke(); }
+  g.restore();
+};
+/** acacia (flat-topped savanna tree), base at y */
+export const acacia = (g, x, y, h, col = "#6f8a3a", T = 0) => {
+  g.save(); g.translate(x, y); const s = h / 400;
+  g.beginPath(); g.moveTo(-14 * s, 0); g.lineTo(-8 * s, -220 * s); g.lineTo(-90 * s, -330 * s); g.lineTo(-70 * s, -340 * s); g.lineTo(0, -250 * s); g.lineTo(80 * s, -345 * s); g.lineTo(98 * s, -333 * s); g.lineTo(14 * s, -215 * s); g.lineTo(16 * s, 0); g.closePath();
+  g.fillStyle = "#5a3a24"; g.fill(); g.lineWidth = 5; g.strokeStyle = INK; g.stroke();
+  const sw = 4 * Math.sin(T * 1.3);
+  g.beginPath(); g.ellipse(sw * s, -370 * s, 210 * s, 50 * s, 0, 0, Math.PI * 2); g.fillStyle = col; g.fill(); g.lineWidth = 6; g.stroke();
+  g.beginPath(); g.ellipse(-60 * s + sw * s, -395 * s, 110 * s, 30 * s, 0, 0, Math.PI * 2); g.fillStyle = shadeHex(col, 1.12); g.fill(); g.lineWidth = 5; g.stroke();
+  g.restore();
+};
+/** rolling dunes band from y down */
+export const dunes = (g, y, T = 0, cols = ["#f2c27a", "#e8a95e", "#d98f48"], x0 = -1500, x1 = 2600) => {
+  cols.forEach((c, i) => {
+    const yy = y + i * 150; g.beginPath(); g.moveTo(x0, 4000);
+    for (let x = x0; x <= x1; x += 40) g.lineTo(x, yy + 70 * Math.sin(x / (260 + i * 90) + i * 1.7) + 30 * Math.sin(x / 120 + i));
+    g.lineTo(x1, 4000); g.closePath(); g.fillStyle = c; g.fill(); g.lineWidth = 6; g.strokeStyle = INK; g.stroke();
+  });
+};
+/** cartoon lion, side view facing +x, feet at y; roar 0..1 opens the mouth */
+export const lion = (g, x, y, s = 1, T = 0, roar = 0, dir = 1) => {
+  g.save(); g.translate(x, y); g.scale(s * dir, s);
+  const ph = T * 6;
+  for (const [lx, a] of [[-110, 0], [-70, 2], [80, 1], [120, 3]]) { g.beginPath(); g.roundRect(lx - 18, -110 + 6 * Math.sin(ph + a), 36, 110, 14); g.fillStyle = lx === -70 || lx === 120 ? "#c98a3a" : "#d99a48"; g.fill(); g.lineWidth = 6; g.strokeStyle = INK; g.stroke(); }
+  g.beginPath(); g.moveTo(-150, -150); g.quadraticCurveTo(-240, -170 + 20 * Math.sin(ph), -250, -260); g.lineWidth = 20; g.strokeStyle = INK; g.stroke(); g.lineWidth = 11; g.strokeStyle = "#d99a48"; g.stroke();
+  blob4(g, -252, -262, 22, 22, "#7a3a1e", 5);
+  blob4(g, 0, -170, 175, 80, "#e8a95a", 6);
+  // mane
+  g.beginPath(); for (let i = 0; i <= 20; i++) { const a = (i / 20) * Math.PI * 2, rr = i % 2 ? 120 : 150; g.lineTo(150 + Math.cos(a) * rr, -260 + Math.sin(a) * rr); } g.closePath(); g.fillStyle = "#9a4a22"; g.fill(); g.lineWidth = 7; g.stroke();
+  blob4(g, 165, -255, 92, 86, "#f2b464", 6);
+  for (const ex of [110, 200]) blob4(g, ex, -335, 22, 20, "#e8a95a", 5);
+  g.beginPath(); g.arc(140, -280, 9, 0, Math.PI * 2); g.arc(200, -280, 9, 0, Math.PI * 2); g.fillStyle = INK; g.fill();
+  g.beginPath(); g.moveTo(125, -300); g.lineTo(152, -292); g.moveTo(215, -300); g.lineTo(188, -292); g.lineWidth = 6; g.strokeStyle = INK; g.stroke();
+  blob4(g, 172, -230, 50, 34, "#f6d39a", 5); g.beginPath(); g.moveTo(160, -250); g.lineTo(184, -250); g.lineTo(172, -236); g.closePath(); g.fillStyle = INK; g.fill();
+  const m = clamp(roar, 0, 1);
+  if (m > 0.05) { g.beginPath(); g.ellipse(172, -205, 34, 6 + 34 * m, 0, 0, Math.PI * 2); g.fillStyle = "#6a1a22"; g.fill(); g.lineWidth = 5; g.stroke();
+    g.fillStyle = "#fff"; for (const tx of [150, 194]) { g.beginPath(); g.moveTo(tx - 8, -208 - 26 * m); g.lineTo(tx + 8, -208 - 26 * m); g.lineTo(tx, -190 - 26 * m); g.closePath(); g.fill(); g.lineWidth = 3; g.stroke(); } }
+  else { g.beginPath(); g.moveTo(150, -212); g.quadraticCurveTo(172, -200, 194, -212); g.lineWidth = 5; g.stroke(); }
+  g.restore();
+};
+/** dromedary camel, side view facing +x, feet at y; walk phase; optional rider colour block (seat) */
+export const camel = (g, x, y, s = 1, phase = 0, col = "#d9a866", dir = 1) => {
+  g.save(); g.translate(x, y); g.scale(s * dir, s);
+  const p = phase * Math.PI * 2, bob = -6 * Math.abs(Math.sin(p));
+  const leg = (lx, a, c) => { g.beginPath(); g.moveTo(lx, -230 + bob); g.lineTo(lx + 22 * Math.sin(a), -110); g.lineTo(lx + 30 * Math.sin(a + 0.6), 0); g.lineWidth = 26; g.strokeStyle = INK; g.stroke(); g.lineWidth = 15; g.strokeStyle = c; g.stroke(); };
+  leg(-90, Math.sin(p + 1.4), shadeHex(col, 0.8)); leg(90, Math.sin(p + 2.8), shadeHex(col, 0.8));
+  g.beginPath(); g.moveTo(-170, -250 + bob); g.quadraticCurveTo(-200, -200 + bob, -190, -160 + bob); g.lineWidth = 12; g.strokeStyle = INK; g.stroke();
+  g.beginPath(); g.moveTo(-180, -250 + bob); g.bezierCurveTo(-170, -330 + bob, -60, -440 + bob, 10, -350 + bob); g.bezierCurveTo(60, -300 + bob, 150, -310 + bob, 170, -260 + bob);
+  g.quadraticCurveTo(160, -200 + bob, 0, -200 + bob); g.quadraticCurveTo(-150, -195 + bob, -180, -250 + bob); g.closePath(); g.fillStyle = col; g.fill(); ink(g, 6);
+  // neck + head
+  g.beginPath(); g.moveTo(140, -280 + bob); g.quadraticCurveTo(230, -260 + bob, 240, -400 + bob); g.lineTo(290, -410 + bob); g.quadraticCurveTo(275, -240 + bob, 165, -225 + bob); g.closePath(); g.fillStyle = col; g.fill(); ink(g, 6);
+  g.beginPath(); g.ellipse(285, -420 + bob, 58, 30, 0.15, 0, Math.PI * 2); g.fillStyle = col; g.fill(); ink(g, 6);
+  g.beginPath(); g.arc(275, -432 + bob, 7, 0, Math.PI * 2); g.fillStyle = INK; g.fill(); g.beginPath(); g.moveTo(262, -440 + bob); g.lineTo(290, -444 + bob); g.lineWidth = 5; g.stroke();
+  g.beginPath(); g.moveTo(320, -405 + bob); g.quadraticCurveTo(333, -398 + bob, 340, -410 + bob); g.lineWidth = 4; g.stroke();
+  blob4(g, 248, -448 + bob, 10, 16, shadeHex(col, 0.85), 4);
+  // saddle blanket on the hump
+  g.beginPath(); g.moveTo(-80, -360 + bob); g.quadraticCurveTo(10, -420 + bob, 60, -330 + bob); g.lineTo(40, -270 + bob); g.lineTo(-90, -280 + bob); g.closePath(); g.fillStyle = "#b8323a"; g.fill(); ink(g, 5);
+  g.fillStyle = "#f2c94a"; for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(-70 + i * 35, -278 + bob, 7, 0, Math.PI * 2); g.fill(); }
+  leg(-60, Math.sin(p), col); leg(120, Math.sin(p + 3.4), col);
+  g.restore();
+  return (-380 + bob) * s;
+};
+/** small river boat with a palm-thatch cabin and a name on the bow; waterline at y */
+export const riverBoat = (g, x, y, s = 1, T = 0, name = "MARYS", dir = 1) => {
+  g.save(); g.translate(x, y + 6 * Math.sin(T * 2)); g.rotate(0.02 * Math.sin(T * 1.6)); g.scale(s * dir, s);
+  g.beginPath(); g.moveTo(-330, -60); g.lineTo(330, -60); g.quadraticCurveTo(320, 30, 230, 40); g.lineTo(-250, 40); g.quadraticCurveTo(-330, 20, -330, -60); g.closePath();
+  g.fillStyle = "#7a4a2a"; g.fill(); ink(g, 7); g.fillStyle = "#5a321c"; g.fillRect(-320, -30, 640, 12);
+  g.beginPath(); g.moveTo(-200, -60); g.lineTo(-200, -210); g.lineTo(120, -210); g.lineTo(120, -60); g.fillStyle = "#c9a060"; g.fill(); ink(g, 6);
+  g.beginPath(); g.moveTo(-240, -200); g.quadraticCurveTo(-40, -300, 160, -200); g.closePath(); g.fillStyle = "#8a9a3a"; g.fill(); ink(g, 6);
+  g.strokeStyle = "rgba(60,40,20,0.5)"; g.lineWidth = 4; for (let i = -180; i < 120; i += 34) { g.beginPath(); g.moveTo(i, -200); g.lineTo(i + 10, -70); g.stroke(); }
+  g.beginPath(); g.roundRect(-150, -170, 70, 60, 6); g.fillStyle = "#3a2a1e"; g.fill(); ink(g, 4);
+  g.save(); g.scale(dir, 1); g.font = "900 46px Montserrat"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#f6f0d8"; g.fillText(name, dir * 230, -14); g.restore();
+  g.restore();
+};
+/** mosquito with buzzing wings */
+export const mosquito = (g, x, y, s = 1, T = 0) => {
+  g.save(); g.translate(x, y); g.scale(s, s);
+  const f = Math.sin(T * 90) * 0.5;
+  for (const k of [-1, 1]) { g.save(); g.rotate(k * (0.6 + f)); g.beginPath(); g.ellipse(0, -40, 16, 40, 0, 0, Math.PI * 2); g.fillStyle = "rgba(220,240,255,0.7)"; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.restore(); }
+  g.beginPath(); g.ellipse(0, 0, 40, 14, 0.2, 0, Math.PI * 2); g.fillStyle = "#4a3a3a"; g.fill(); g.lineWidth = 4; g.strokeStyle = INK; g.stroke();
+  g.beginPath(); g.arc(42, -6, 14, 0, Math.PI * 2); g.fillStyle = "#4a3a3a"; g.fill(); g.stroke(); g.beginPath(); g.arc(48, -10, 6, 0, Math.PI * 2); g.fillStyle = "#e83a3a"; g.fill();
+  g.beginPath(); g.moveTo(54, -2); g.lineTo(92, 14); g.lineWidth = 4; g.stroke();
+  for (let i = 0; i < 3; i++) { g.beginPath(); g.moveTo(-10 + i * 16, 8); g.lineTo(-30 + i * 22, 50); g.lineTo(-40 + i * 24, 60); g.lineWidth = 3; g.stroke(); }
+  g.restore();
+};
+/** canvas tent, base at y */
+export const tent = (g, x, y, s = 1, col = "#c9b27a", glow = 0) => {
+  g.save(); g.translate(x, y); g.scale(s, s);
+  g.beginPath(); g.moveTo(-220, 0); g.lineTo(0, -230); g.lineTo(220, 0); g.closePath(); g.fillStyle = col; g.fill(); ink(g, 7);
+  g.beginPath(); g.moveTo(-60, 0); g.lineTo(0, -170); g.lineTo(60, 0); g.closePath(); g.fillStyle = glow ? `rgba(255,190,90,${0.5 + 0.5 * glow})` : "#5a4a30"; g.fill(); ink(g, 5);
+  g.beginPath(); g.moveTo(0, -230); g.lineTo(0, -270); g.lineWidth = 8; g.stroke();
+  g.restore();
+};
+/** striped lighthouse (Cape Agulhas has a red/white one), base at y */
+export const lighthouse = (g, x, y, h, T = 0) => {
+  g.save(); g.translate(x, y); const s = h / 600;
+  g.beginPath(); g.moveTo(-70 * s, 0); g.lineTo(-45 * s, -480 * s); g.lineTo(45 * s, -480 * s); g.lineTo(70 * s, 0); g.closePath(); g.fillStyle = "#f6f0e0"; g.fill(); ink(g, 7);
+  g.save(); g.clip(); g.fillStyle = "#c8323a"; for (let i = 0; i < 4; i++) g.fillRect(-90 * s, (-100 - i * 120) * s, 180 * s, 60 * s); g.restore();
+  g.beginPath(); g.moveTo(-70 * s, 0); g.lineTo(-45 * s, -480 * s); g.lineTo(45 * s, -480 * s); g.lineTo(70 * s, 0); g.closePath(); ink(g, 7);
+  g.beginPath(); g.rect(-60 * s, -500 * s, 120 * s, 20 * s); g.fillStyle = "#3a3a44"; g.fill(); ink(g, 5);
+  g.beginPath(); g.rect(-34 * s, -570 * s, 68 * s, 70 * s); g.fillStyle = "#ffe48a"; g.fill(); ink(g, 5);
+  g.beginPath(); g.moveTo(-46 * s, -570 * s); g.lineTo(0, -620 * s); g.lineTo(46 * s, -570 * s); g.closePath(); g.fillStyle = "#c8323a"; g.fill(); ink(g, 5);
+  const a = T * 1.5; g.save(); g.translate(0, -535 * s); g.rotate(Math.sin(a) * 0.5);
+  const gr = g.createLinearGradient(0, 0, 700 * s, 0); gr.addColorStop(0, "rgba(255,240,170,0.55)"); gr.addColorStop(1, "rgba(255,240,170,0)");
+  g.beginPath(); g.moveTo(0, 0); g.lineTo(700 * s, -110 * s); g.lineTo(700 * s, 110 * s); g.closePath(); g.fillStyle = gr; g.fill(); g.restore();
+  g.restore();
+};
+/** whitewashed North-African town (Algiers): stacked cubes, arches, a minaret; base at y */
+export const whiteTown = (g, y, T = 0, seed = 3) => {
+  for (let row = 0; row < 3; row++) for (let i = 0; i < 9; i++) {
+    const w = 120 + rnd(i + row * 9, seed) * 90, h = 90 + rnd(i, row + seed) * 100, x = -120 + i * 150 + (row % 2) * 60, yy = y - row * 110;
+    g.beginPath(); g.rect(x, yy - h, w, h); g.fillStyle = ["#fbf7ee", "#f1ebde", "#e8e0cf"][(i + row) % 3]; g.fill(); ink(g, 5);
+    g.beginPath(); g.roundRect(x + w * 0.3, yy - h * 0.7, w * 0.22, h * 0.42, [14, 14, 0, 0]); g.fillStyle = "#2f6fb0"; g.fill(); ink(g, 3);
+  }
+  const mx = 820, my = y - 330; g.beginPath(); g.rect(mx - 40, my - 300, 80, 300); g.fillStyle = "#fbf7ee"; g.fill(); ink(g, 6);
+  g.beginPath(); g.rect(mx - 52, my - 320, 104, 26); g.fill(); ink(g, 5); g.beginPath(); g.rect(mx - 26, my - 380, 52, 60); g.fillStyle = "#fbf7ee"; g.fill(); ink(g, 5);
+  g.beginPath(); g.arc(mx, my - 380, 26, Math.PI, 0); g.fillStyle = "#3f9e6a"; g.fill(); ink(g, 5);
+};
+/** Africa outline (normalised [0..1] points) + helpers to place towns */
+export const AFRICA = [[0.08, 0.12], [0.2, 0.07], [0.33, 0.08], [0.42, 0.12], [0.52, 0.13], [0.62, 0.12], [0.68, 0.14], [0.74, 0.27], [0.82, 0.37], [0.95, 0.41], [0.92, 0.47], [0.83, 0.57],
+  [0.8, 0.66], [0.78, 0.74], [0.7, 0.82], [0.6, 0.93], [0.47, 0.975], [0.42, 0.93], [0.38, 0.8], [0.34, 0.66], [0.33, 0.55], [0.31, 0.47], [0.27, 0.43], [0.14, 0.43], [0.07, 0.38], [0.0, 0.3], [0.03, 0.2]];
+export const africa = (g, X, Y, Wd, Hd, col = "#e8b35e", T = 0) => {
+  g.beginPath(); AFRICA.forEach(([u, v], i) => (i ? g.lineTo(X + u * Wd, Y + v * Hd) : g.moveTo(X + u * Wd, Y + v * Hd))); g.closePath();
+  g.fillStyle = col; g.fill(); ink(g, 9);
+  g.save(); g.clip(); // green jungle belt + savanna band + sahara stays sand
+  g.fillStyle = "rgba(90,150,70,0.85)"; g.beginPath(); g.ellipse(X + 0.5 * Wd, Y + 0.53 * Hd, 0.32 * Wd, 0.09 * Hd, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "rgba(170,170,80,0.6)"; g.fillRect(X, Y + 0.38 * Hd, Wd, 0.07 * Hd); g.fillRect(X, Y + 0.62 * Hd, Wd, 0.14 * Hd);
+  g.restore();
+  g.beginPath(); g.ellipse(X + 0.86 * Wd, Y + 0.72 * Hd, 0.035 * Wd, 0.09 * Hd, 0.3, 0, Math.PI * 2); g.fillStyle = col; g.fill(); ink(g, 6); // Madagascar
+};

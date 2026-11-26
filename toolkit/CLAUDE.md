@@ -51,8 +51,19 @@ outlines) on painted 2D backgrounds, a free TTS voice-over, synthesized music/SF
   `calPage()` flip calendar (old page shows the previous number), object handed mid-air between two characters (glowing star),
   crew "inside" a hull by clipping at the gunwale. audio.py now computes word times exactly like main.js (`T_`, `SEG`) — no hand-typed cue times.
 - Captions moved to y = 0.70·H (was 0.60) so they no longer cover faces; keep faces/heads above ~1250 px.
+## Engine additions (bicycle-africa, 2026-11-26)
+- toon.js: hat `"safari"` (domed canvas sun hat, `cap` + `band`), expression `smirk` (smug, half-closed eyes).
+- paint.js: `bikeSide` (1930s touring bicycle in side view with spinning wheels + crank; optional built-in SIDE-PROFILE rider
+  {skin, shirt, pants, boots, hat:"safari"|hair, pack} who actually pedals — knees solved from hip→pedal; `still`, `bags`, `frame`, `dir`),
+  `acacia`, `dunes`, `lion` (roar 0..1), `camel` (walk phase, returns hump-top y for a rider in `mode:"sit"`), `riverBoat` (name on bow),
+  `mosquito`, `tent` (glow), `lighthouse` (rotating beam), `whiteTown` (Algiers-style), `africa` + `AFRICA` normalised outline.
+- main.js ideas: `postmark()` round ink cancellation label (date auto-fits the ring) as a "travel diary" timeline device;
+  `diaryMap()` + `routeTo(k)` running route that advances with each dated sentence; bike held over the head (pose "cheer" + bike drawn above);
+  ch(..., {mode:"sit"}) to seat a character on an animal.
+- Topic research: YouTube search via Composio `YOUTUBE_SEARCH_YOU_TUBE` (free quota) — use `totalResults` as a saturation score;
+  famous "weird facts" are covered by dozens of AI channels the same week, prefer little-known people/adventures.
 ## Still to improve
-Side-view walking with held props, a real side-view sailing pose for characters on deck,
+Side-view walking with held props (side-profile walker like bikeSide's rider), a real side-view sailing pose for characters on deck,
 real free music/SFX files if the owner uploads them.
 
 ## Layout
