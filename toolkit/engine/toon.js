@@ -356,6 +356,16 @@ const faceSide = (p     , hx        , hy        , W        , expr      , lid    
 const BONNET = "#e9cf8f", BONNET_BRIM = "#d6b46a";
 /** parts of a hat that sit behind the head (bonnet) */
 const hatBehind = (p     , o        , H      , cx        , hc        , light        , thick        , ow        , side         ) => {
+  if (o.longHair) { // (2026-11-27) long hair hanging behind the head down to the shoulders; o.longHair = colour
+    const W = 2 * H.a, u = W / 100, top = hc - H.b * 0.95, bot = hc + H.b * 1.55, wv = (k) => 4 * u * Math.sin(k * 3.1 + H.seed);
+    const pts = [];
+    for (let i = 0; i <= 10; i++) { const t = Math.PI + (i / 10) * Math.PI; pts.push([cx + Math.cos(t) * H.a * 1.12, hc - 0.1 * H.b + Math.sin(t) * H.b * 0.98]); }
+    pts.push([cx + H.a * 1.18 + wv(1), hc + H.b * 0.6], [cx + H.a * 1.05, bot], [cx + H.a * 0.5, bot + 6 * u], [cx + H.a * 0.2, hc + H.b * 0.9]);
+    pts.push([cx - H.a * 0.2, hc + H.b * 0.9], [cx - H.a * 0.5, bot + 6 * u], [cx - H.a * 1.05, bot], [cx - H.a * 1.18 + wv(2), hc + H.b * 0.6]);
+    p.shadedFill(pts, o.longHair, mul(o.longHair, SH_FELT), light, H.a * 1.2);
+    p.poly(pts, null, ow * 0.85);
+    void top;
+  }
   if (o.hat !== "bonnet") return;
   const bb = blobPts(cx - (side ? 12 : 0) * (H.a / 50), hc - 0.07 * 2 * H.b, { ...H, a: H.a * 1.17, b: H.b * 1.13, asym: 0, egg: 0.04, seed: H.seed + 3 });
   p.shadedFill(bb, BONNET, mul(BONNET, SH_CLOTH), light, H.a * 1.17);
@@ -455,6 +465,20 @@ const hatOn = (p     , o        , hp      , H      , cx        , hc        , lig
     p.shadedFill(body, col, mul(col, SH_FELT), light, wb, 0.4);
     p.clip(body, () => p.band(R([[cx - wb - 4 * u, yb - 0.07 * HH], [cx + wb + 4 * u, yb - 0.07 * HH]]), o.band ?? "#5a3a24", 0.08 * HH, 0.8 * u));
     p.poly(body, null, ow);
+  } else if (o.hat === "tuque") { // (2026-11-27) knitted wool cap: snug crown, ribbed folded cuff, pompom (o.cap, o.cuff, o.knot)
+    const cut = crown + 0.34 * HH, col = o.cap ?? "#b8323a";
+    const arc = hp.filter(([x, y]) => y < cut).map(([x, y]) => [cx + (x - cx) * 1.05, hc + (y - hc) * 1.05]);
+    if (arc.length > 3) {
+      const peak = R([[cx + 6 * u, crown - 0.16 * HH]])[0];
+      const body = [...arc.slice(0, Math.floor(arc.length / 2)), peak, ...arc.slice(Math.floor(arc.length / 2))];
+      p.shadedFill(arc, col, mul(col, SH_FELT), light, H.a, 0.35); p.poly(arc, null, ow);
+      void body;
+      p.clip(arc, () => { for (let i = -5; i <= 5; i++) p.stroke(R([[cx + i * 9 * u, crown - 2 * u], [cx + i * 11 * u, cut]]), 1.1 * u, mul(col, [0.7, 0.7, 0.7])); });
+      const cuff = R([[cx - H.a * 1.08, cut - 0.02 * HH], [cx + H.a * 1.08, cut - 0.02 * HH]]);
+      p.band(cuff, o.cuff ?? shade(col, 0.82), 0.12 * HH, ow * 0.8, "round");
+      for (let i = -6; i <= 6; i++) { const [x1, y1] = R([[cx + i * 8 * u, cut - 0.07 * HH]])[0], [x2, y2] = R([[cx + i * 8 * u, cut + 0.03 * HH]])[0]; p.stroke([[x1, y1], [x2, y2]], 1 * u, INK); }
+      const [tx, ty] = R([[cx, crown - 6 * u]])[0]; p.ell(tx, ty, 11 * u, 10 * u, o.knot ?? "#f2eadc", 2.4 * u);
+    }
   } else if (o.hat === "bonnet") {
     const [bx, by] = R([[cx + (side ? 6 * u : 0), crown + 0.16 * HH]])[0];
     p.arc(bx, by, 0.5 * W, 0.2 * HH, 200, 340, 7 * u, BONNET_BRIM);
@@ -662,7 +686,10 @@ export const bodyFront = (p     , o        , opts           ) => {
       const ang = rad(-70 + 105 * clamp(prop[1], 0, 1));
       const Rh = (pts      ) => rotPts(pts, ang, hx, hy);
       p.band(Rh([[hx, hy + 12 * u], [hx, hy - 44 * u]]), "#8a5a34", 5 * u, 1.5 * u, "round");
-      p.poly(Rh([[hx - 12 * u, hy - 58 * u], [hx + 20 * u, hy - 58 * u], [hx + 20 * u, hy - 42 * u], [hx - 12 * u, hy - 42 * u]]), "#7d848c", 2.2 * u);
+      if (prop[0] === "axe") { // (2026-11-27) felling axe: long haft + curved steel bit
+        p.band(Rh([[hx, hy - 44 * u], [hx, hy - 70 * u]]), "#8a5a34", 5 * u, 1.5 * u, "round");
+        p.poly(Rh([[hx - 4 * u, hy - 76 * u], [hx + 30 * u, hy - 86 * u], [hx + 36 * u, hy - 66 * u], [hx + 30 * u, hy - 48 * u], [hx - 4 * u, hy - 58 * u]]), "#9aa3ad", 2.2 * u);
+      } else p.poly(Rh([[hx - 12 * u, hy - 58 * u], [hx + 20 * u, hy - 58 * u], [hx + 20 * u, hy - 42 * u], [hx - 12 * u, hy - 42 * u]]), "#7d848c", 2.2 * u);
       p.dot(hx, hy, 5.5 * u);
     }
   }
@@ -688,7 +715,7 @@ export const bodyFront = (p     , o        , opts           ) => {
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, 300, hc, light, seed, facing, false);
-  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "guapi";
+  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "guapi" && o.hat !== "tuque";
   faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout", o.beard);
   p.rot = null;
 };
@@ -811,7 +838,7 @@ export const bodySide = (p     , o        , opts          ) => {
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, hx, hc, light, seed, 1, true);
-  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "guapi";
+  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "guapi" && o.hat !== "tuque";
   faceSide(p, hx, hc, W, expr, lid, brim, skin, o.moustache, o.build === "stout");
   p.rot = null;
 };

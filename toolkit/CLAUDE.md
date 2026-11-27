@@ -62,6 +62,19 @@ outlines) on painted 2D backgrounds, a free TTS voice-over, synthesized music/SF
   ch(..., {mode:"sit"}) to seat a character on an animal.
 - Topic research: YouTube search via Composio `YOUTUBE_SEARCH_YOU_TUBE` (free quota) — use `totalResults` as a saturation score;
   famous "weird facts" are covered by dozens of AI channels the same week, prefer little-known people/adventures.
+## Engine additions (fur-trade-secret, 2026-11-27)
+- toon.js: hat `"tuque"` (knitted wool cap: ribbed cuff + pompom; `cap`, `cuff`, `knot`), `o.longHair` (long hair hanging behind the head,
+  any colour — use with hat `"hair"` for women/old women), axe prop: `prop: ["axe", strike0..1]` (felling axe instead of the hammer).
+- paint.js: `spruce` (snowy conifer), `snowfall` (screen-space), `snowGround`, `fort` (palisade fur-trade fort: bastion, gate `gateOpen`,
+  lit `inside`, `sign` text, pennant), `furCanoe` (birchbark canoe with animated paddlers + `bales`), `bale`, `pelt`, `tallShip` (c.1800
+  three-master, `dir`), `hearth` (stone fireplace + fire glow), `logWall`, `washtub`, `stocking`, `croft` (Orkney stone cottage),
+  `standingStones`, `babyBundle`, `atlantic` (stylised N. Atlantic map: Hudson Bay + Scotland/Orkney; `NAMER`/`HBAY`/`SCOT`), `clockFace`.
+- main.js ideas: COUNTDOWN structure — `clueCard(n)` birch-bark card with a red wax number + `clueShot()` intro shot + `badge()` "CLUE #n"
+  pill during each clue's scenes; `ledger()` company account-book label (handwritten lines that write themselves, red `bigX` cross-out
+  to rename someone); jacket-flaps wipe transition for a reveal; `coin()` spinning coins.
+- Topic research lesson: AI channels publish whatever an LLM "knows" first (Ada Blackjack, Köpenick, Nain Singh, Hamel, Kate Shelley,
+  Hatfield, Tom Thumb, Otis... all 10+ Shorts this month). Check `totalResults` + upload dates with YOUTUBE_SEARCH_YOU_TUBE (order=date)
+  before writing anything; Isobel Gunn had 80 results / 2 Shorts.
 ## Still to improve
 Side-view walking with held props (side-profile walker like bikeSide's rider), a real side-view sailing pose for characters on deck,
 real free music/SFX files if the owner uploads them.
