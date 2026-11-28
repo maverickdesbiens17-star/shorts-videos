@@ -356,6 +356,12 @@ const faceSide = (p     , hx        , hy        , W        , expr      , lid    
 const BONNET = "#e9cf8f", BONNET_BRIM = "#d6b46a";
 /** parts of a hat that sit behind the head (bonnet) */
 const hatBehind = (p     , o        , H      , cx        , hc        , light        , thick        , ow        , side         ) => {
+  const sb = o.sideburns ?? (o.hat === "bald" ? o.hair : null);
+  if (sb) for (const k of [-1, 1]) { // (2026-11-28) hair tufts / mutton chops sticking out behind the ears (bald men, Victorian sideburns)
+    const u = (2 * H.a) / 100, x = cx + k * H.a * 0.92, y = hc + (o.sideburns ? 0.12 : -0.02) * H.b, pts = [];
+    for (let i = 0; i <= 14; i++) { const a = (i / 14) * Math.PI * 2, r = 1 + 0.12 * Math.sin(a * 5); pts.push([x + Math.cos(a) * 15 * u * r, y + Math.sin(a) * (o.sideburns ? 30 : 22) * u * r]); }
+    p.shadedFill(pts, sb, mul(sb, SH_FELT), light, H.a * 0.4); p.poly(pts, null, ow * 0.8);
+  }
   if (o.longHair) { // (2026-11-27) long hair hanging behind the head down to the shoulders; o.longHair = colour
     const W = 2 * H.a, u = W / 100, top = hc - H.b * 0.95, bot = hc + H.b * 1.55, wv = (k) => 4 * u * Math.sin(k * 3.1 + H.seed);
     const pts = [];
@@ -715,8 +721,14 @@ export const bodyFront = (p     , o        , opts           ) => {
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, 300, hc, light, seed, facing, false);
-  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "guapi" && o.hat !== "tuque";
+  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "guapi" && o.hat !== "tuque" && o.hat !== "bald";
   faceFront(p, 300, hc, W, expr, facing, look, lid, brim, skin, o.moustache, o.build === "stout", o.beard);
+  { // (2026-11-28) Victorian extras: o.sideburns (mutton chops / side fringe colour, also used by hat "bald"), o.glasses (round spectacles)
+    const u = W / 100;
+    if (o.glasses) { const fx = 300 + 7 * u * facing, col = o.glasses === true ? "#2a2420" : o.glasses;
+      for (const s of [-1, 1]) p.ell(fx + s * 13 * u, hc, 10 * u, 9 * u, "rgba(220,235,255,0.18)", 2.6 * u);
+      p.stroke([[fx - 4 * u, hc - 2 * u], [fx + 4 * u, hc - 2 * u]], 2.2 * u); void col; }
+  }
   p.rot = null;
 };
 
@@ -838,7 +850,7 @@ export const bodySide = (p     , o        , opts          ) => {
   p.shadedFill(hp, skin, mul(skin, SH_SKIN), light, H.a);
   p.inkRing(hp, ow, thick);
   hatOn(p, o, hp, H, hx, hc, light, seed, 1, true);
-  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "guapi" && o.hat !== "tuque";
+  const brim = !!o.hat && o.hat !== "hair" && o.hat !== "bonnet" && o.hat !== "cap" && o.hat !== "guapi" && o.hat !== "tuque" && o.hat !== "bald";
   faceSide(p, hx, hc, W, expr, lid, brim, skin, o.moustache, o.build === "stout");
   p.rot = null;
 };

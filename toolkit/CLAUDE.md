@@ -75,6 +75,19 @@ outlines) on painted 2D backgrounds, a free TTS voice-over, synthesized music/SF
 - Topic research lesson: AI channels publish whatever an LLM "knows" first (Ada Blackjack, Köpenick, Nain Singh, Hamel, Kate Shelley,
   Hatfield, Tom Thumb, Otis... all 10+ Shorts this month). Check `totalResults` + upload dates with YOUTUBE_SEARCH_YOU_TUBE (order=date)
   before writing anything; Isobel Gunn had 80 results / 2 Shorts.
+## Engine additions (evolution-letter, 2026-11-28)
+- toon.js: hat `"bald"` (bare dome; side hair tufts behind the ears in `o.hair`), `o.sideburns` (mutton-chop tufts, any colour),
+  `o.glasses` (round spectacles). Victorian gentlemen: `tie` + `bald`/`hair` + sideburns.
+- paint.js: `birdwing` (flapping butterfly), `beetle` (top view, `horn` 0..1, walking legs), `leaf` + `jungle` (layered tropical leaves),
+  `volcanoIsle`, `stiltHut`, `victorianRoom` (damask wallpaper, dado, wainscot, floorboards), `frame` (gilt portrait/landscape),
+  `lectern`, `bookcase`, `envelope` (flap opens, letter slides out, wax seal, address), `book` (cloth-bound cover with gold title),
+  `cricket` (awkward-silence gag), `chair` (spot-lit empty chair + name card), `treeOfLife` (ink branching sketch that draws itself),
+  `specimenBox`.
+- main.js ideas: COLD OPEN ON THE ENDING → calendar pages flying BACKWARDS as the rewind transition (different from the VHS rewind);
+  `report()` society-minutes label, `quoteCard()` handwritten quote, `zzz()` sleepers, `audience()` heads behind pews, `worldMap()` +
+  `dashRoute()` mail route Ternate→Suez→England; `push()` is now half-linear so slow push-ins never trip the freeze QA.
+- Pitfalls seen: a stamp in the same colour as the wallpaper is invisible; text drawn inside `held` is mirrored when the character
+  has flip −1 (counter-scale x); `face()` draws the whole body — only use it when the body runs off the bottom of the frame.
 ## Still to improve
 Side-view walking with held props (side-profile walker like bikeSide's rider), a real side-view sailing pose for characters on deck,
 real free music/SFX files if the owner uploads them.
