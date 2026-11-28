@@ -15,8 +15,25 @@ outlines) on painted 2D backgrounds, a free TTS voice-over, synthesized music/SF
 - Voice: calm female storyteller, Kokoro `af_heart`, speed ~0.94. Claude cannot hear audio: tell the owner to check names' pronunciation.
 - Music and SFX at 50 % (−6 dB) of the voice's gated RMS; final loudness ~−14 LUFS.
 
+## VIEWS FIX (owner, 2026-11-28 — overrides the length/word counts below)
+The owner: "views dropped since the first videos, fix it". YouTube Analytics: war-of-the-bucket 1,125 views / 68.6 % viewed,
+dragon-bones 1,322 / 57 %, then rhino 359 / 51 %, star-canoe 14 / 37 %; engagedViews/views fell from 56-69 % to ~43 %, so the Shorts
+feed stopped pushing them (Instagram fell the same way → the content is the main cause). Rules from now on:
+- LENGTH 35-45 s (about 95-115 words), a new picture every 1-1.5 s. No more 60-65 s videos.
+- HOOK: first sentence ≤ 10 words = the absurd conflict / shocking fact itself (never a date, place or setup first). Frame 1 shows
+  the most striking image with big text.
+- TOPIC APPEAL: premise understandable in 3 s by an American viewer (absurd conflicts, silly wars, tricks/scams, small beats big,
+  bizarre laws/jobs/foods, animals in history, "How did X work?"). Avoid slow biographies of little-known travellers/scientists.
+  A known topic is OK with a fresh TRUE angle if existing Shorts on it are all < 10k views.
+- TITLE: question or "How/Why…" with the conflict, ≤ 50 characters.
+- One short "why it matters" sentence; closing question ≤ 8 words.
+- Never delete + re-upload a video; max 1 upload per day per platform.
+- Track retention daily (free): Composio YOUTUBE_QUERY_ANALYTICS ids "channel==MINE", dimensions "video",
+  metrics "views,engagedViews,averageViewDuration,averageViewPercentage,likes,subscribersGained" (lags ~2 days).
+  Targets ≥ 65 % viewed, ≥ 60 % engaged; log in memory /areas/sujets-videos.md and learn from best vs worst.
+
 ## Quality bar (built in war-of-the-bucket v3 — reuse these helpers from its main.js)
-- ~32 shots for 53 s: a new picture every 1–2 s, sub-cuts on key words; `SHOTS = [[start, fn], ...]`.
+- ~30 shots for 40 s: a new picture every 1–2 s, sub-cuts on key words; `SHOTS = [[start, fn], ...]`.
 - Face close-ups with `face()`; talking/shouting mouths with `talk(T, "shout", "stern")`;
   extra faces in toon.js: shout, shout2, yell, gulp, talk, deadpan.
 - Effects: `sweat`, `angry` vein, `sparkle`, `speedLines`, camera `shakeAmt`, `stamp()` labels (NOVEMBER 1325, THE LEGEND, SOUVENIR…),
@@ -104,7 +121,7 @@ real free music/SFX files if the owner uploads them.
 
 ## How to make a new Short
 1. `bash tools/setup.sh`
-2. Pick + verify the topic; write `script.txt` (one sentence per line, `text|pause_seconds`), ~150 words ≈ 50–55 s.
+2. Pick + verify the topic; write `script.txt` (one sentence per line, `text|pause_seconds`), ~100 words ≈ 35–45 s (VIEWS FIX).
    Hook first line, escalate, twist in the last lines.
 3. `mkdir -p work/<slug>/voice work/<slug>/web && cp script.txt work/<slug>/voice/ && cd work/<slug>/voice && python3 ../../../tools/tts.py af_heart 0.94`
 4. `cp ../../engine/* work/<slug>/web/`; write `web/data.js` (`window.SEGS=<segments.json>;window.DUR=<seconds>;`)
